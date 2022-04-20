@@ -17,6 +17,14 @@
 import Combine
 import Virtualization
 
+@objc protocol _VZGDBDebugStubConfiguration {
+	init(port: Int)
+}
+
+@objc protocol _VZVirtualMachineConfiguration {
+	var _debugStub: _VZGDBDebugStubConfiguration { get @objc(_setDebugStub:) set }
+}
+
 @available(iOS, unavailable, message: "Apple Virtualization not available on iOS")
 @available(macOS 11, *)
 @objc class UTMAppleVirtualMachine: UTMVirtualMachine {
@@ -294,6 +302,8 @@ import Virtualization
             appleConfig.serials[i].interface = serialPort
         }
         let vzConfig = try appleConfig.appleVZConfiguration
+        let debugStub = unsafeBitCast(NSClassFromString("_VZGDBDebugStubConfiguration")!, to: _VZGDBDebugStubConfiguration.Type.self).init(port: 5555)
+        unsafeBitCast(vzConfig, to: _VZVirtualMachineConfiguration.self)._debugStub = debugStub
         apple = VZVirtualMachine(configuration: vzConfig, queue: vmQueue)
         apple.delegate = self
     }

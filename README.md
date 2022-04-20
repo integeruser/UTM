@@ -1,78 +1,54 @@
-#  UTM
-[![Build](https://github.com/utmapp/UTM/workflows/Build/badge.svg?branch=master&event=push)][1]
+# UTM
 
-> It is possible to invent a single machine which can be used to compute any computable sequence.
+A fork of UTM to enable debugging of macOS guests on macOS 12+ hosts through the [Virtualization framework](https://developer.apple.com/documentation/virtualization)'s private GDB stub.
 
--- <cite>Alan Turing, 1936</cite>
+Credits to [@_saagarjha](https://twitter.com/_saagarjha) for both [ideas](https://twitter.com/_saagarjha/status/1411196869640822790) and [code](https://github.com/saagarjha/VirtualApple).
 
-UTM is a full featured system emulator and virtual machine host for iOS and macOS. It is based off of QEMU. In short, it allows you to run Windows, Linux, and more on your Mac, iPhone, and iPad. More information at https://getutm.app/ and https://mac.getutm.app/
+Last tested on Apple Silicon running on macOS Monterey 12.3.1 and Xcode 13.3.1.
 
-<p align="center">
-  <img width="450px" alt="UTM running on an iPhone" src="screen.png">
-  <br>
-  <img width="450px" alt="UTM running on a MacBook" src="screenmac.png">
-</p>
+## Requisites
 
-## Features
+1. [Disable System Integrity Protection](https://developer.apple.com/documentation/security/disabling_and_enabling_system_integrity_protection).
 
-* Full system emulation (MMU, devices, etc) using QEMU
-* 30+ processors supported including x86_64, ARM64, and RISC-V
-* VGA graphics mode using SPICE and QXL
-* Text terminal mode
-* USB devices
-* JIT based acceleration using QEMU TCG
-* Frontend designed from scratch for macOS 11 and iOS 11+ using the latest and greatest APIs
-* Create, manage, run VMs directly from your device
+1. Either disable AMFI globally (possibly breaking some apps) or patch the entitlements check with a debugger.
 
-## Additional macOS Features
+    The first approach requires:
 
-* Hardware accelerated virtualization using Hypervisor.framework and QEMU
-* Boot macOS guests with Virtualization.framework on macOS 12+
+    1. Update the `boot-args` variable:
 
-## UTM SE
+        ```bash
+        $ sudo nvram boot-args="amfi_get_out_of_my_way=1"
+        ```
 
-UTM/QEMU requires dynamic code generation (JIT) for maximum performance. JIT on iOS devices require either a jailbroken device, or one of the various workarounds found for specific versions of iOS (see "Install" for more details).
+    1. Add the entitlement `com.apple.private.virtualization` to `Platform/macOS/macOS-unsigned.entitlements`.
 
-UTM SE ("slow edition") uses a [threaded interpreter][3] which performs better than a traditional interpreter but still slower than JIT. This technique is similar to what [iSH][4] does for dynamic execution. As a result, UTM SE does not require jailbreaking or any JIT workarounds and can be sideloaded as a regular app.
+    The second approach requires:
 
-To optimize for size and build times, only the following architectures are included in UTM SE: ARM, PPC, RISC-V, and x86 (all with both 32-bit and 64-bit variants).
+    1. Write an [Endpoint Security client](https://developer.apple.com/documentation/endpointsecurity/monitoring_system_events_with_endpoint_security) that hooks the execution of process `com.apple.Virtualization.VirtualMachine` and sends `SIGSTOP` to it (e.g. with `kill(<pid>, SIGSTOP)`) before allowing it to execute; then, attach to the stopped process with LLDB, patch the entitlements check and continue execution:
 
-## Install
+        ```
+        $ lldb -p <pid>
+        (lldb) b xpc_connection_copy_entitlement_value
+        (lldb) breakpoint command add
+        thread return (id)xpc_bool_create(1)
+        c
+        DONE
+        (lldb) c
+        ```
 
-UTM (SE) for iOS: https://getutm.app/install/
+## Building
 
-UTM is also available for macOS: https://mac.getutm.app/
+Follow the [original documentation](Documentation/MacDevelopment.md) to build and package UTM using prebuilt dependencies.
 
-## Development
+## Using
 
-### [macOS Development](Documentation/MacDevelopment.md)
+After booting the macOS guest, connect from the host to port 5555 with any debugger supporting the GDB Remote Protocol:
 
-### [iOS Development](Documentation/iOSDevelopment.md)
-
-## Related
-
-* [iSH][4]: emulates a usermode Linux terminal interface for running x86 Linux applications on iOS
-* [a-shell][5]: packages common Unix commands and utilities built natively for iOS and accessible through a terminal interface
+```bash
+$ lldb
+(lldb) gdb-remote 5555
+```
 
 ## License
 
-UTM is distributed under the permissive Apache 2.0 license. However, it uses several (L)GPL components. Most are dynamically linked but the gstreamer plugins are statically linked and parts of the code are taken from qemu. Please be aware of this if you intend on redistributing this application.
-
-Some icons made by [Freepik](https://www.freepik.com) from [www.flaticon.com](https://www.flaticon.com/).
-
-Additionally, UTM frontend depends on the following MIT/BSD License components:
-
-* [IQKeyboardManager](https://github.com/hackiftekhar/IQKeyboardManager)
-* [SwiftTerm](https://github.com/migueldeicaza/SwiftTerm)
-* [ZIP Foundation](https://github.com/weichsel/ZIPFoundation)
-* [InAppSettingsKit](https://github.com/futuretap/InAppSettingsKit)
-
-Continuous integration hosting is provided by [MacStadium](https://www.macstadium.com/opensource)
-
-[<img src="https://uploads-ssl.webflow.com/5ac3c046c82724970fc60918/5c019d917bba312af7553b49_MacStadium-developerlogo.png" alt="MacStadium logo" width="250">](https://www.macstadium.com)
-
-  [1]: https://github.com/utmapp/UTM/actions?query=event%3Arelease+workflow%3ABuild
-  [2]: screen.png
-  [3]: https://github.com/ktemkin/qemu/blob/with_tcti/tcg/aarch64-tcti/README.md
-  [4]: https://github.com/ish-app/ish
-  [5]: https://github.com/holzschu/a-shell
+Licensed under the Apache License 2.0 in accordance with the original license.
