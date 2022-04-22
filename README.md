@@ -6,35 +6,27 @@ Credits to [@_saagarjha](https://twitter.com/_saagarjha) for both [ideas](https:
 
 Last tested on Apple Silicon running on macOS Monterey 12.3.1 and Xcode 13.3.1.
 
-## Requisites
+## Requirements
 
-1. [Disable System Integrity Protection](https://developer.apple.com/documentation/security/disabling_and_enabling_system_integrity_protection).
+Either disabling AMFI globally (possibly breaking some apps) or patching the entitlements check with a debugger.
 
-1. Either disable AMFI globally (possibly breaking some apps) or patch the entitlements check with a debugger.
+The first approach involves:
 
-    The first approach requires:
+1. [Disabling System Integrity Protection](https://developer.apple.com/documentation/security/disabling_and_enabling_system_integrity_protection).
 
-    1. Update the `boot-args` variable:
+1. Updating the `boot-args` variable:
 
-        ```bash
-        $ sudo nvram boot-args="amfi_get_out_of_my_way=1"
-        ```
+    ```bash
+    $ sudo nvram boot-args="amfi_get_out_of_my_way=1"
+    ```
 
-    1. Add the entitlement `com.apple.private.virtualization` to `Platform/macOS/macOS-unsigned.entitlements`.
+1. Adding the entitlement `com.apple.private.virtualization` to `Platform/macOS/macOS-unsigned.entitlements` before building and packaging UTM.
 
-    The second approach requires:
+The second approach involves:
 
-    1. Write an [Endpoint Security client](https://developer.apple.com/documentation/endpointsecurity/monitoring_system_events_with_endpoint_security) that hooks the execution of process `com.apple.Virtualization.VirtualMachine` and sends `SIGSTOP` to it (e.g. with `kill(<pid>, SIGSTOP)`) before allowing it to execute; then, attach to the stopped process with LLDB, patch the entitlements check and continue execution:
+1. Disabling System Integrity Protection.
 
-        ```
-        $ lldb -p <pid>
-        (lldb) b xpc_connection_copy_entitlement_value
-        (lldb) breakpoint command add
-        thread return (id)xpc_bool_create(1)
-        c
-        DONE
-        (lldb) c
-        ```
+1. Installing an [Endpoint Security client](https://developer.apple.com/documentation/endpointsecurity) that hooks the execution of process `com.apple.Virtualization.VirtualMachine` and sends `SIGSTOP` to it before allowing it to execute, so to be able to attach to the process with a debugger before the entitlements check. This repository includes an example client in the form of the patch file [`MonitoringSystemEventsWithEndpointSecurity.patch`](MonitoringSystemEventsWithEndpointSecurity.patch) to be applied to the [sample client provided by Apple](https://developer.apple.com/documentation/endpointsecurity/monitoring_system_events_with_endpoint_security) (follow the building instructions for AUTH events and sign the app to run locally—no need for a Developer ID certificate and provisioning profile).
 
 ## Building
 
@@ -42,12 +34,14 @@ Follow the [original documentation](Documentation/MacDevelopment.md) to build an
 
 ## Using
 
-After booting the macOS guest, connect from the host to port 5555 with any debugger supporting the GDB Remote Protocol:
+If AMFI has been disabled globally, from the UTM GUI boot the macOS guest and then attach to it from the host with any debugger supporting the GDB Remote Protocol:
 
 ```bash
 $ lldb
 (lldb) gdb-remote 5555
 ```
+
+If instead the Endpoint Security client has been installed, from the UTM GUI boot the macOS guest (which will immediately stop) and then execute the script [`resume.sh`](resume.sh) to automatically patch the entitlements check with LLDB and resume execution; next, attach to the guest from the host with any debugger as explained just above.
 
 ## License
 
