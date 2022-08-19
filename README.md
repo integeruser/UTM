@@ -30,7 +30,22 @@ The second approach involves:
 
 ## Building
 
-Follow the [original documentation](Documentation/MacDevelopment.md) to build and package UTM using prebuilt dependencies.
+Follow the [original documentation](Documentation/MacDevelopment.md) to build and package UTM using prebuilt dependencies:
+
+1. Clone submodules:
+
+        UTM$ git submodule update --init --recursive
+
+1. Download prebuilt dependencies from [GitHub Actions](https://github.com/utmapp/UTM/actions?query=event%3Arelease+workflow%3ABuild) and unzip the archive in the project's root directory.
+
+        UTM$ ls sysroot-macOS-arm64/
+        Frameworks/ bin/        host/       include/    lib/        libexec/    qapi/       sbin/       share/      ssl/        var/
+
+1. Build and package UTM:
+
+        UTM$ scripts/build_utm.sh -p macos -a arm64
+        UTM$ scripts/package_mac.sh unsigned ../UTM.xcarchive /tmp/
+        UTM$ mv /tmp/signed/UTM.app /Applications/
 
 ## Using
 
