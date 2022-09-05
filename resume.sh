@@ -8,7 +8,7 @@ do
     sleep 1
 done    
 
-lldb -b -p $pid -s <(echo "
+lldb --no-lldbinit -b -p $pid -s <(echo "
 b xpc_connection_copy_entitlement_value
 breakpoint command add
     thread return (id)xpc_bool_create(1)
