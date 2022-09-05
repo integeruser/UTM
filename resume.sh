@@ -9,6 +9,11 @@ do
 done    
 
 lldb --no-lldbinit -b -p $pid -s <(echo "
+image list
+b _os_crash
+breakpoint command add
+    bt
+DONE
 b xpc_connection_copy_entitlement_value
 breakpoint command add
     thread return (id)xpc_bool_create(1)
