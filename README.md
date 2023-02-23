@@ -58,6 +58,8 @@ $ lldb
 
 If instead the Endpoint Security client has been installed, from the UTM GUI boot the macOS guest (which will immediately stop) and then execute the script [`resume.sh`](resume.sh) to automatically patch the entitlements check with LLDB and resume execution; next, attach to the guest from the host with any debugger as explained just above.
 
+**Important** The VM won't boot if UTM has been built unsigned and Network Mode is set to "Bridged" in the VM settings ([it seems to require special entitlements](https://github.com/utmapp/UTM/issues/3959)).
+
 ## License
 
 Licensed under the Apache License 2.0 in accordance with the original license.
