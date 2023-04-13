@@ -2,12 +2,14 @@
 
 while :
 do
-    # assuming only one VM running
+    # Assuming only one VM running
     pid=$(pgrep com.apple.Virtualization.VirtualMachine)
     if [ -n "$pid" ]; then break; fi
     sleep 1
 done
 
+# The following command spawns LLDB to patch the entitlements check, resume
+# execution and detach.
 lldb --no-lldbinit -b -p $pid -s <(echo '
 image list
 
