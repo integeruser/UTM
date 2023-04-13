@@ -49,14 +49,14 @@ Follow the [original documentation](Documentation/MacDevelopment.md) to build an
 
 ## Using
 
-If AMFI has been disabled globally, from the UTM GUI boot the macOS guest and then attach to it from the host with any debugger supporting the GDB Remote Protocol:
+If AMFI has been disabled globally, from the UTM GUI boot the macOS guest and then attach to it from the host with LLDB:
 
 ```bash
 $ lldb
 (lldb) gdb-remote 5555
 ```
 
-If instead the Endpoint Security client has been installed, from the UTM GUI boot the macOS guest (which will immediately stop) and then execute the script [`resume.sh`](resume.sh) to automatically patch the entitlements check with LLDB and resume execution; next, attach to the guest from the host with any debugger as explained just above.
+If instead the Endpoint Security client has been installed, from the UTM GUI boot the macOS guest (which will immediately stop) and then execute the script [`resume.sh`](resume.sh) to automatically patch the entitlements check with LLDB and resume execution; next, attach to the guest from the host with a debugger as explained just above.
 
 **Important** The VM won't boot if UTM has been built unsigned and Network Mode is set to "Bridged" in the VM settings ([it seems to require special entitlements](https://github.com/utmapp/UTM/issues/3959)).
 
