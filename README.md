@@ -26,7 +26,7 @@ The second approach involves:
 
 1. Disabling System Integrity Protection.
 
-1. Installing an [Endpoint Security client](https://developer.apple.com/documentation/endpointsecurity) that hooks the execution of process `com.apple.Virtualization.VirtualMachine` and sends `SIGSTOP` to it before allowing it to execute, so to be able to attach to the process with a debugger before the entitlements check. This repository includes an example client in the form of the patch file [`MonitoringSystemEventsWithEndpointSecurity.patch`](MonitoringSystemEventsWithEndpointSecurity.patch) to be applied to the [sample client provided by Apple](https://developer.apple.com/documentation/endpointsecurity/monitoring_system_events_with_endpoint_security) (follow the building instructions for AUTH events and sign the app to run locally—no need for a Developer ID certificate and provisioning profile).
+1. Installing an [Endpoint Security client](https://developer.apple.com/documentation/endpointsecurity) that hooks the execution of process `com.apple.Virtualization.VirtualMachine` and sends `SIGSTOP` to it before allowing it to execute, so to be able to attach to the process with a debugger before the entitlements check. This repository includes an example client in the form of the patch file [`MonitoringSystemEventsWithEndpointSecurity.patch`](MonitoringSystemEventsWithEndpointSecurity.patch) to be applied to the [sample client provided by Apple](https://developer.apple.com/documentation/endpointsecurity/monitoring_system_events_with_endpoint_security) (follow the building instructions for AUTH events and sign the app to run locally—no need for a Developer ID certificate and provisioning profile if System Integrity Protection is disabled).
 
 ## Building
 
